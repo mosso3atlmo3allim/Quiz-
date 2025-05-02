@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبر ثقافتك</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #003366, #006699);
+            font-family: Arial, sans-serif;
+            color: #fff;
+            text-align: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+        }
+        .section-button, .option-button, .retry-button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            background: #007bff;
+            transition: background 0.3s;
+        }
+        .section-button:hover, .option-button:hover, .retry-button:hover {
+            background: #0056b3;
+        }
+        .countdown {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+        .question {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        .score, .result {
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="sections">
+            <h1>اختبر ثقافتك</h1>
+            <button class="section-button" onclick="startSection('الدين')">اختبار في الدين</button>
+            <button class="section-button" onclick="startSection('التاريخ')">اختبار في التاريخ</button>
+            <button class="section-button" onclick="startSection('العلوم')">اختبار في العلوم</button>
+        </div>
+        <div id="countdown" class="countdown hidden">3</div>
+        <div id="quiz" class="hidden">
+            <div class="question" id="question">السؤال</div>
+            <div id="options"></div>
+            <div class="result" id="result"></div>
+            <div class="score" id="score">النقاط: 0</div>
+            <button class="retry-button hidden" id="retry-button" onclick="restartQuiz()">إعادة المحاولة</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = {
+            "الدين": [
+                { question: "ما هي السورة التي وردت فيها البسملة مرتين؟", options: ["النمل", "الفاتحة", "الإخلاص"], answer: 0 },
+            { question: "من هو أول من دفن في البقيع؟", options: ["عثمان بن مظعون", "أبو بكر الصديق", "علي بن أبي طالب"], answer: 0 },
+            { question: "ما هي السورة التي سميت باسم كوكب؟", options: ["سورة القمر", "سورة الشمس", "سورة الليل"], answer: 0 },
+            { question: "ما هو أول جبل وضع على الأرض؟", options: ["جبل أبي قبيس", "جبل عرفات", "جبل النور"], answer: 0 },
+            { question: "كم مرة ورد ذكر النار في القرآن الكريم؟", options: ["126 مرة", "120 مرة", "130 مرة"], answer: 0 },
+            { question: "من هو الصحابي الذي ذكر في القرآن الكريم؟", options: ["زيد بن حارثة", "عبد الله بن مسعود", "عمر بن الخطاب"], answer: 0 },
+            { question: "ما هي السورة التي تنتهي باسم نبيين؟", options: ["سورة الأعلى", "سورة النجم", "سورة إبراهيم"], answer: 2 },
+            { question: "ما هي أقصر آية في القرآن؟", options: ["طه", "مدهامتان", "والضحى"], answer: 0 },
+            { question: "من هو النبي الذي ورد في القرآن ولم يولد من أم؟", options: ["آدم", "عيسى", "إبراهيم"], answer: 0 },
+            { question: "ما هي الآية التي جمعت كل الحروف الهجائية؟", options: ["آية 29 من سورة الفتح", "آية 30 من سورة يس", "آية 28 من سورة الحديد"], answer: 0 },
+            { question: "كم مرة ذكرت الصلاة في القرآن الكريم؟", options: ["99 مرة", "100 مرة", "98 مرة"], answer: 0 },
+            { question: "ما هو اسم زوجة فرعون التي ذكرت في القرآن؟", options: ["آسية بنت مزاحم", "مارية القبطية", "صفية بنت حيي"], answer: 0 },
+            { question: "ما هي أطول كلمة في القرآن؟", options: ["فأسقيناكموه", "أَنُلزِمُكُمُوهَا", "يَسْتَبْشِرُونَ"], answer: 0 },
+            { question: "ما هو أول ما يُسأل عنه العبد يوم القيامة؟", options: ["الصلاة", "الصيام", "الزكاة"], answer: 0 },
+            { question: "من هو النبي الذي صنع السفينة؟", options: ["نوح", "إبراهيم", "موسى"], answer: 0 },
+            { question: "من هو الذي سماه الرسول سيف الله المسلول؟", options: ["خالد بن الوليد", "علي بن أبي طالب", "الزبير بن العوام"], answer: 0 },
+            { question: "ما هي السورة التي سميت باسم حشرة؟", options: ["سورة النمل", "سورة الفيل", "سورة العنكبوت"], answer: 2 },
+            { question: "كم عدد السجدات في القرآن الكريم؟", options: ["14 سجدة", "15 سجدة", "16 سجدة"], answer: 1 },
+            { question: "ما هي السورة التي تسمى سورة القتال؟", options: ["سورة محمد", "سورة البقرة", "سورة الأنفال"], answer: 0 },
+            { question: "كم مرة ذكرت كلمة 'الحياة' في القرآن؟", options: ["145 مرة", "146 مرة", "144 مرة"], answer: 1 },
+            ],
+            "التاريخ": [
+                { question: "من هو القائد الذي فتح القسطنطينية؟", options: ["صلاح الدين الأيوبي", "محمد الفاتح", "طارق بن زياد"], answer: 1 },
+    { question: "في أي عام تم فتح مكة؟", options: ["العام السادس للهجرة", "العام الثامن للهجرة", "العام العاشر للهجرة"], answer: 1 },
+    { question: "من هو القائد الذي فتح الأندلس؟", options: ["صلاح الدين الأيوبي", "طارق بن زياد", "محمد الفاتح"], answer: 1 },
+    { question: "من هو أول رئيس للولايات المتحدة؟", options: ["توماس جيفرسون", "جورج واشنطن", "أبراهام لينكولن"], answer: 1 },
+    { question: "ما هو العام الذي انتهت فيه الحرب العالمية الثانية؟", options: ["1945", "1940", "1950"], answer: 0 },
+    { question: "من هو مؤسس الدولة العباسية؟", options: ["المنصور", "عبد الله بن الزبير", "أبو العباس السفاح"], answer: 2 },
+    { question: "متى قامت ثورة يوليو في مصر؟", options: ["1948", "1952", "1956"], answer: 1 },
+    { question: "ما هو الاسم القديم للعراق؟", options: ["بابل", "آشور", "بلاد ما بين النهرين"], answer: 2 },
+    { question: "من هو أول من اكتشف أمريكا؟", options: ["كريستوفر كولومبوس", "فاسكو دا غاما", "ماركو بولو"], answer: 0 },
+    { question: "في أي معركة هزم المسلمون الروم في عهد عمر بن الخطاب؟", options: ["اليرموك", "القادسية", "بدر"], answer: 0 },
+    { question: "من هو الملك الذي وحّد ألمانيا؟", options: ["فريدريك العظيم", "أوتو فون بسمارك", "ويلهلم الثاني"], answer: 1 },
+    { question: "ما هو الاسم السابق لمدينة اسطنبول؟", options: ["بيزنطة", "القسطنطينية", "أنقرة"], answer: 1 },
+    { question: "في أي عام أُسّست جامعة الأزهر؟", options: ["358 هـ", "361 هـ", "970 م"], answer: 1 },
+    { question: "من هو الخليفة الذي أسس دار الحكمة في بغداد؟", options: ["هارون الرشيد", "المأمون", "المعتصم"], answer: 1 },
+    { question: "في أي عام تم توقيع معاهدة فرساي؟", options: ["1918", "1919", "1920"], answer: 1 },
+    { question: "من هو مؤسس الدولة العثمانية؟", options: ["عثمان بن أرطغرل", "سليمان القانوني", "محمد الفاتح"], answer: 0 },
+    { question: "ما هو العام الذي تم فيه بناء برج إيفل؟", options: ["1889", "1895", "1900"], answer: 0 },
+    { question: "من هو الملك الفرعوني الذي بنى أهرامات الجيزة؟", options: ["خفرع", "منقرع", "خوفو"], answer: 2 },
+    { question: "من هو الملك الفرنسي الذي أُطلق عليه لقب 'ملك الشمس'؟", options: ["لويس الرابع عشر", "لويس الخامس عشر", "نابليون بونابرت"], answer: 0 },
+    { question: "في أي عام تم إنشاء الأمم المتحدة؟", options: ["1945", "1950", "1960"], answer: 0 },
+    { question: "من هو الخليفة الذي نقل عاصمة الخلافة إلى بغداد؟", options: ["المعتصم", "هارون الرشيد", "المنصور"], answer: 2 },
+    { question: "ما هي الحضارة التي اشتهرت بحدائق بابل المعلقة؟", options: ["البابلية", "الآشورية", "المصرية"], answer: 0 },
+    { question: "ما هو العام الذي أُلغيت فيه الخلافة العثمانية؟", options: ["1924", "1920", "1930"], answer: 0 },
+    { question: "من هو أول رئيس لمصر بعد ثورة 1952؟", options: ["محمد نجيب", "جمال عبد الناصر", "أنور السادات"], answer: 0 },
+    { question: "من هو القائد المسلم في معركة بلاط الشهداء؟", options: ["طارق بن زياد", "عبد الرحمن الغافقي", "صلاح الدين الأيوبي"], answer: 1 },
+    { question: "في أي عام أُسّست جامعة القاهرة؟", options: ["1908", "1920", "1936"], answer: 0 },
+    { question: "ما هي أول حضارة عرفت الكتابة؟", options: ["الآشورية", "السومرية", "المصرية القديمة"], answer: 1 },
+    { question: "من هو مؤسس المملكة العربية السعودية؟", options: ["عبد الله بن سعود", "عبد العزيز آل سعود", "سعود بن عبد العزيز"], answer: 1 },
+    { question: "ما هو العام الذي سقطت فيه الأندلس؟", options: ["1492", "1485", "1501"], answer: 0 },
+    { question: "ما هي أول دولة اعترفت باستقلال الولايات المتحدة؟", options: ["فرنسا", "إسبانيا", "المغرب"], answer: 2 },
+            ],
+            "العلوم": [
+                { question: "ما هو الكوكب الأقرب إلى الشمس؟", options: ["المشتري", "عطارد", "الزهرة"], answer: 1 },
+    { question: "ما هو الكوكب المعروف بالكوكب الأحمر؟", options: ["الزهرة", "المريخ", "المشتري"], answer: 1 },
+    { question: "ما هو العضو الذي يستخدمه السمك للتنفس؟", options: ["الرئتين", "الخياشيم", "الجلد"], answer: 1 },
+    { question: "ما هو الجهاز المسؤول عن ضخ الدم في الجسم؟", options: ["الكبد", "القلب", "الكلى"], answer: 1 },
+    { question: "ما هي الوحدة الأساسية لقياس الطاقة؟", options: ["الجول", "الكيلوغرام", "الوات"], answer: 0 },
+    { question: "ما هو الغاز الذي تحتاجه النباتات لإجراء عملية البناء الضوئي؟", options: ["الأكسجين", "النيتروجين", "ثاني أكسيد الكربون"], answer: 2 },
+    { question: "ما هو الحيوان المعروف بأنه أسرع مخلوق على الأرض؟", options: ["الفهد", "الصقر", "الحصان"], answer: 0 },
+    { question: "ما هو الجهاز الذي يتحكم في جميع وظائف الجسم؟", options: ["الجهاز العصبي", "الجهاز الهضمي", "الجهاز التنفسي"], answer: 0 },
+    { question: "ما هي طبقة الأرض الصلبة التي نعيش عليها؟", options: ["الوشاح", "القشرة", "النواة"], answer: 1 },
+    { question: "ما هو الكوكب الذي لديه أكبر عدد من الأقمار؟", options: ["زحل", "المشتري", "أورانوس"], answer: 1 },
+    { question: "ما هي أصغر وحدة في الكائنات الحية؟", options: ["النواة", "الخلية", "الجين"], answer: 1 },
+    { question: "ما هو الغاز الذي يُعد الأخف وزنًا؟", options: ["الأكسجين", "الهيليوم", "الهيدروجين"], answer: 2 },
+    { question: "ما هو الجهاز المسؤول عن هضم الطعام؟", options: ["الجهاز التنفسي", "الجهاز الهضمي", "الجهاز العصبي"], answer: 1 },
+    { question: "ما هو الكوكب الذي يشتهر بحلقاته الجميلة؟", options: ["زحل", "نبتون", "أورانوس"], answer: 0 },
+    { question: "ما هي الحاسة التي تعتمد على الأنف؟", options: ["السمع", "التذوق", "الشم"], answer: 2 },
+    { question: "ما هو العضو الذي ينظم درجة حرارة الجسم؟", options: ["القلب", "الدماغ", "الجلد"], answer: 2 },
+    { question: "ما هو النوع الأكثر شيوعًا من الصخور على سطح الأرض؟", options: ["الصخور الرسوبية", "الصخور النارية", "الصخور المتحولة"], answer: 0 },
+    { question: "ما هو الحيوان الذي يُطلق عليه لقب ملك الغابة؟", options: ["الفيل", "الأسد", "النمر"], answer: 1 },
+    { question: "ما هو عدد الكروموسومات في جسم الإنسان؟", options: ["23", "46", "64"], answer: 1 },
+    { question: "ما هو المكون الأساسي للشمس؟", options: ["الهيليوم", "الهيدروجين", "الأكسجين"], answer: 1 },
+    { question: "ما هي الطبقة التي تحمي الأرض من الأشعة فوق البنفسجية؟", options: ["الستراتوسفير", "الأوزون", "التروبوسفير"], answer: 1 },
+    { question: "ما هو العضو الذي يقوم بترشيح الدم من الفضلات؟", options: ["الكبد", "الكلى", "الرئتين"], answer: 1 },
+    { question: "ما هو العنصر الكيميائي الذي يرمز له بـ H؟", options: ["الهيدروجين", "الهليوم", "الحديد"], answer: 0 },
+    { question: "ما هي العملية التي تحول السكر إلى طاقة في الخلية؟", options: ["التنفس الخلوي", "البناء الضوئي", "الانقسام الخلوي"], answer: 0 },
+    { question: "ما هي الظاهرة التي تجعل السماء تظهر باللون الأزرق؟", options: ["التشتت", "الانعكاس", "الانكسار"], answer: 0 },
+    { question: "ما هو العضو الذي يضخ الأنسولين في الجسم؟", options: ["البنكرياس", "الكبد", "الطحال"], answer: 0 },
+    { question: "ما هو الطائر الذي لا يستطيع الطيران؟", options: ["البطريق", "النسر", "البومة"], answer: 0 },
+    { question: "ما هو اسم المركب الكيميائي للماء؟", options: ["H2O", "CO2", "O2"], answer: 0 },
+    { question: "ما هو اسم أكبر كوكب في المجموعة الشمسية؟", options: ["زحل", "المشتري", "أورانوس"], answer: 1 },
+    { question: "ما هو نوع الدم الذي يعتبر المعطي العام؟", options: ["O+", "O-", "AB-"], answer: 1 }
+],
+        };
+
+        let currentSection = "";
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        const sectionsElement = document.getElementById("sections");
+        const countdownElement = document.getElementById("countdown");
+        const quizElement = document.getElementById("quiz");
+        const questionElement = document.getElementById("question");
+        const optionsElement = document.getElementById("options");
+        const resultElement = document.getElementById("result");
+        const scoreElement = document.getElementById("score");
+        const retryButton = document.getElementById("retry-button");
+
+        function startSection(section) {
+            currentSection = section;
+            sectionsElement.classList.add("hidden");
+            countdownElement.classList.remove("hidden");
+            startCountdown();
+        }
+
+        function startCountdown() {
+            let countdown = 3;
+            countdownElement.textContent = countdown;
+            const interval = setInterval(() => {
+                countdown -= 1;
+                if (countdown >= 0) {
+                    countdownElement.textContent = countdown;
+                } else {
+                    clearInterval(interval);
+                    countdownElement.classList.add("hidden");
+                    quizElement.classList.remove("hidden");
+                    loadQuestion();
+                }
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex < quizData[currentSection].length) {
+                const currentQuestion = quizData[currentSection][currentQuestionIndex];
+                questionElement.textContent = `السؤال ${currentQuestionIndex + 1}: ${currentQuestion.question}`;
+                optionsElement.innerHTML = "";
+                resultElement.textContent = "";
+                currentQuestion.options.forEach((option, index) => {
+                    const button = document.createElement("button");
+                    button.classList.add("option-button");
+                    button.textContent = option;
+                    button.onclick = () => checkAnswer(index);
+                    optionsElement.appendChild(button);
+                });
+            } else {
+                endQuiz();
+            }
+        }
+
+        function checkAnswer(selectedOption) {
+            const currentQuestion = quizData[currentSection][currentQuestionIndex];
+            if (selectedOption === currentQuestion.answer) {
+                resultElement.textContent = "إجابة صحيحة!";
+                score++;
+            } else {
+                resultElement.textContent = `إجابة خاطئة! الإجابة الصحيحة هي: ${currentQuestion.options[currentQuestion.answer]}`;
+            }
+            scoreElement.textContent = `النقاط: ${score}`;
+            currentQuestionIndex++;
+            setTimeout(loadQuestion, 2000);
+        }
+
+        function endQuiz() {
+            questionElement.textContent = "انتهى الاختبار!";
+            optionsElement.innerHTML = "";
+            resultElement.textContent = `لقد حصلت على ${score} من ${quizData[currentSection].length}`;
+            retryButton.classList.remove("hidden");
+        }
+
+        function restartQuiz() {
+            currentSection = "";
+            currentQuestionIndex = 0;
+            score = 0;
+            sectionsElement.classList.remove("hidden");
+            quizElement.classList.add("hidden");
+            retryButton.classList.add("hidden");
+        }
+    </script>
+</body>
+</html>
